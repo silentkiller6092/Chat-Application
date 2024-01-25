@@ -21,7 +21,7 @@
 
         // Handle incoming messages
         socket.on('message', (message) => {
-            console.log(message);
+
             const chat = document.getElementById("chat");
             const li = document.createElement("li");
             li.textContent = message;

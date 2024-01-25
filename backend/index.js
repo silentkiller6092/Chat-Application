@@ -1,36 +1,18 @@
-const express = require("express");
-const http = require("http");
-const socketIO = require("socket.io");
-const cors = require("cors");
-
-const app = express();
-const server = http.createServer(app);
-
-// Enable CORS for all routes
-app.use(cors());
-
-const io = socketIO(server, {
+const app = require("express")();
+const server = require("http").createServer(app);
+const connectDB = require("./src/db/index.js");
+const io = require("socket.io")(server, {
   cors: {
-    origin: "http://127.0.0.1:5500", // Adjust the origin to your frontend URL
-    methods: ["GET", "POST"],
-    credentials: true,
+    origin: "*",
   },
 });
-
+connectDB();
 io.on("connection", (socket) => {
-  console.log("Client Connection established");
-
-  socket.on("message", (message) => {
-    console.log(`Received ${message}`);
-    io.emit("message", message);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Socket disconnected");
+  console.log("Estalishing connection");
+  socket.on("chat", (chat) => {
+    io.emit("chat", chat);
   });
 });
-
-const port = process.env.PORT || 3000;
-server.listen(port, () => {
-  console.log("Server listening on", port);
+server.listen(3000, () => {
+  console.log("Server listening on port " + 3000);
 });
