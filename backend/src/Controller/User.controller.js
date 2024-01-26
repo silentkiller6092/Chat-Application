@@ -2,7 +2,18 @@ const userModel = require("../models/user.model");
 const APIResponse = require("../utils/APiResponse");
 const APIerror = require("../utils/ApiError");
 const { uploadonCloud } = require("../utils/Cloudinary");
-
+const generateAccessTokenandRefreshToken = async (userId) => {
+  try {
+    const user = await userModel.findById(userId);
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: true });
+    return { accessToken, refreshToken };
+  } catch (e) {
+    throw new APIerror(500, "Something went wrong");
+  }
+};
 const registerUser = async (req, res) => {
   try {
     const { username, email, fullName, password } = req.body;
@@ -30,7 +41,6 @@ const registerUser = async (req, res) => {
     const avatarCloud = await uploadonCloud(avatarLocalPath);
 
     if (!avatarCloud) throw new APIerror(500, "Error while uploading");
-
     const userCreation = await userModel.create({
       fullName: fullName,
       avatar: avatarCloud.url,
@@ -53,15 +63,11 @@ const registerUser = async (req, res) => {
       .status(200)
       .json(new APIResponse(200, { createdUser }, "Success"));
   } catch (error) {
-    if (error instanceof APIerror) {
-      return res
-        .status(error.statusCode)
-        .json(new APIResponse(error.statusCode, null, error.message));
-    } else {
-      return res
-        .status(500)
-        .json(new APIResponse(500, null, "Internal Server Error"));
-    }
+    return res
+      .status(500)
+      .json(
+        new APIResponse(500, null, "Internal Server Error" || error.message)
+      );
   }
 };
 
