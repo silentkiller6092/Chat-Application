@@ -8,12 +8,13 @@ const generateAccessTokenandRefreshToken = async (userId) => {
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: true });
-    return { accessToken, refreshToken };
+    await user.save({ validateBeforeSave: false });
+    return { accessToken: accessToken, refreshToken: refreshToken };
   } catch (e) {
     throw new APIerror(500, "Something went wrong");
   }
 };
+
 const registerUser = async (req, res) => {
   try {
     const { username, email, fullName, password } = req.body;
@@ -65,10 +66,40 @@ const registerUser = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json(
-        new APIResponse(500, null, "Internal Server Error" || error.message)
-      );
+      .json(new APIerror(500, "Internal Server Error" || error.message));
   }
 };
 
-module.exports = { registerUser };
+const loginuser = async (req, res) => {
+  const { email, username, password } = req.body;
+  try {
+    if (!(email || username)) throw new APIerror(400, "Fields can't be empty");
+    const userCHek = await userModel.findOne({
+      $or: [{ email: email }, { username: username }],
+    });
+    if (!userCHek) throw new APIerror(404, "User does not exist");
+    const isPasswordCorrt = await userCHek.ispasswordCorrect(password);
+    if (!isPasswordCorrt) throw new APIerror(400, "Incorrect password");
+    const loggedinuser = await userModel
+      .findById(userCHek._id)
+      .select("-password -refreshToken");
+    const { accessToken, refreshToken } =
+      await generateAccessTokenandRefreshToken(userCHek._id.toString());
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    return res
+      .cookie("accessToken", await accessToken, options)
+      .cookie("refreshToken", await refreshToken, options)
+      .json(new APIResponse(200, loggedinuser));
+  } catch (e) {
+    return res
+      .status(500)
+      .json(new APIerror(500, null, "Internal Server Error" || error.message));
+  }
+};
+
+module.exports = { registerUser, loginuser };
