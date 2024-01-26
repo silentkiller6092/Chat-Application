@@ -1,6 +1,6 @@
-const app = require("express")();
+const app = require("./app.js");
 const server = require("http").createServer(app);
-const connectDB = require("./src/db/index.js");
+const connectDB = require("./db/index.js");
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
@@ -13,6 +13,6 @@ io.on("connection", (socket) => {
     io.emit("chat", chat);
   });
 });
-server.listen(3000, () => {
-  console.log("Server listening on port " + 3000);
+server.listen(4000, () => {
+  console.log("Server listening on port " + 4000);
 });
