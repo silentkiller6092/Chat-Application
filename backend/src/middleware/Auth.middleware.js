@@ -8,6 +8,7 @@ const verifyJWT = async function (req, res, next) {
     const token =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
+
     if (!token) {
       throw new APIerror(400, "Unauthenticated request");
     }
@@ -19,7 +20,7 @@ const verifyJWT = async function (req, res, next) {
     req.user = user;
     next();
   } catch (e) {
-    throw new APIerror(404, "Invalid token" || e.message);
+    return res.status(403).json(new APIerror(400, null, e.message));
   }
 };
 module.exports = verifyJWT;

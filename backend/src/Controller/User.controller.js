@@ -1,6 +1,7 @@
 const userModel = require("../models/user.model");
 const APIResponse = require("../utils/APiResponse");
 const APIerror = require("../utils/ApiError");
+
 const { uploadonCloud } = require("../utils/Cloudinary");
 const generateAccessTokenandRefreshToken = async (userId) => {
   try {
@@ -90,7 +91,8 @@ const loginuser = async (req, res) => {
       httpOnly: true,
       secure: true,
     };
-
+    console.log("This is token");
+    console.log(accessToken, refreshToken);
     return res
       .cookie("accessToken", await accessToken, options)
       .cookie("refreshToken", await refreshToken, options)
@@ -102,4 +104,26 @@ const loginuser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginuser };
+const logout = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const userLogout = await userModel.findByIdAndUpdate(
+      userId,
+      { $unset: { refreshToken: 1 } },
+      { new: true }
+    );
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(new APIResponse(200, userLogout, "Success"));
+  } catch (e) {
+    return res.status(500).json(new APIerror(500, null, e.message));
+  }
+};
+
+module.exports = { registerUser, loginuser, logout };
