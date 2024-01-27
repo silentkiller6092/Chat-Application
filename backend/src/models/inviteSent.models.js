@@ -11,6 +11,10 @@ const FriendRequestSentModel = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
+      inviterID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
     },
   ],
   inviterID: {
@@ -19,7 +23,9 @@ const FriendRequestSentModel = new mongoose.Schema({
   },
 });
 
-module.exports = FriendRequestSent = mongoose.model(
+const FriendRequestSent = mongoose.model(
   "FriendRequestSent",
   FriendRequestSentModel
 );
+
+module.exports = FriendRequestSent;

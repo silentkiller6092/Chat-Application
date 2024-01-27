@@ -91,8 +91,6 @@ const loginuser = async (req, res) => {
       httpOnly: true,
       secure: true,
     };
-    console.log("This is token");
-    console.log(accessToken, refreshToken);
     return res
       .cookie("accessToken", await accessToken, options)
       .cookie("refreshToken", await refreshToken, options)

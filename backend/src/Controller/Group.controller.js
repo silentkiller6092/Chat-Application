@@ -6,7 +6,9 @@ const makeGroup = async (req, res) => {
   const { groupName, isAdmin, groupDescription } = req.body;
   try {
     if (!groupName) {
-      throw new APIerror(400, "All Fields required");
+      return res
+        .status(404)
+        .json(new APIerror(404, null, "GroupName is required"));
     }
 
     const ownerID = req.user._id;
