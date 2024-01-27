@@ -1,10 +1,12 @@
 const express = require("express");
-const router = require("./routes/user.routes");
+const userrouter = require("./routes/user.routes");
 const cookieParser = require("cookie-parser");
+const grouprouter = require("./routes/group.routes");
 const app = express();
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
-app.use("/api/v1/users", router);
+app.use("/api/v1/users", userrouter);
+app.use("/api/v1/group", grouprouter);
 module.exports = app;

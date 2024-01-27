@@ -7,7 +7,7 @@ const groupSchema = new mongoose.Schema(
     },
     isAdmin: {
       type: Boolean,
-      required: true,
+      default: true,
     },
     owner: {
       type: mongoose.Types.ObjectId,
