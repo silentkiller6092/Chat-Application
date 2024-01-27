@@ -126,4 +126,7 @@ const logout = async (req, res) => {
   }
 };
 
+const updateDeatils = async (req, res) => {
+  // TODO: add the controller to add update details feature
+};
 module.exports = { registerUser, loginuser, logout };
