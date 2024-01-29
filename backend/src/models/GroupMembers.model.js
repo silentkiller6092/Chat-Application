@@ -1,22 +1,31 @@
 const mongoose = require("mongoose");
-const groupMembersSchema = new mongoose.model(
+
+const groupMembersSchema = new mongoose.Schema(
   {
     Group: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Group",
     },
-    isAdmin: {
-      type: Boolean,
-      required: true,
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    Members: {
-      type: mongoose.Types.ObjectId,
-      ref: "PrivateChatModel.privatePeoples",
-    },
+    Members: [
+      {
+        isAdmin: {
+          type: Boolean,
+          default: false,
+        },
+        memberID: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "FriendRequestSent.requests.requestedID",
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
-module.exports = GroupMembers = mongoose.model(
-  "GroupMembers",
-  groupMembersSchema
-);
+
+const GroupMembers = mongoose.model("GroupMembers", groupMembersSchema);
+
+module.exports = GroupMembers;
