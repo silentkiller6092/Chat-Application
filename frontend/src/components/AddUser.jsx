@@ -1,6 +1,7 @@
 import React from "react";
 import Register from "./Register";
 import Intro from "./Intro";
+import Login from "./Login";
 
 function AddUser() {
   return (
@@ -10,7 +11,7 @@ function AddUser() {
           <Intro />
         </div>
         <div className=" lg:w-2/3 introSide mx-auto mt-4 lg:mt-0">
-          <Register />
+          <Login />
         </div>
       </div>
     </div>

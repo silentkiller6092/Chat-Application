@@ -8,7 +8,7 @@ function Intro() {
     delaySpeed: 40,
   });
   return (
-    <div className="lg:mt-14 lg:ml-8 mb-20 text-center">
+    <div className="lg:mt-14 lg:ml-8 mb-20 text-center h-20">
       <h1 className="text-white font-semibold">Let's Connect</h1>
       <h2 className="text-orange-600 font-serif ml-20 ">{typeEffect}</h2>
     </div>
