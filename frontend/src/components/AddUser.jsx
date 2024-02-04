@@ -1,5 +1,4 @@
 import React from "react";
-import Register from "./Register";
 import Intro from "./Intro";
 import Login from "./Login";
 
