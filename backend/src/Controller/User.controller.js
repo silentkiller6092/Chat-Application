@@ -32,12 +32,17 @@ const registerUser = async (req, res) => {
       $or: [{ username: username, email: email }],
     });
 
-    if (existingUser) throw new APIerror(400, "User already exists");
+    if (existingUser)
+      return res
+        .status(401)
+        .json(new APIerror(401, null, "User Already Exists"));
 
     const avatarLocalPath = req.file?.path;
 
     if (!avatarLocalPath) {
-      throw new APIerror(400, "Avatar file does not exist");
+      return res
+        .status(404)
+        .json(new APIerror(404, null, "Profile Photo Required"));
     }
 
     const avatarCloud = await uploadonCloud(avatarLocalPath);
@@ -67,7 +72,7 @@ const registerUser = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json(new APIerror(500, "Internal Server Error" || error.message));
+      .json(new APIerror(500, null, "Internal Server Error" || error.message));
   }
 };
 
