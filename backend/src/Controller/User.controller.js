@@ -32,22 +32,21 @@ const registerUser = async (req, res) => {
       $or: [{ username: username, email: email }],
     });
 
-    if (existingUser)
-      return res
-        .status(401)
-        .json(new APIerror(401, null, "User Already Exists"));
+    if (existingUser) {
+      throw new APIerror(401, "User Already Exists");
+    }
 
     const avatarLocalPath = req.file?.path;
-
     if (!avatarLocalPath) {
-      return res
-        .status(404)
-        .json(new APIerror(404, null, "Profile Photo Required"));
+      throw new APIerror(404, "Avatar Required");
     }
 
     const avatarCloud = await uploadonCloud(avatarLocalPath);
 
-    if (!avatarCloud) throw new APIerror(500, "Error while uploading");
+    if (!avatarCloud) {
+      throw new APIerror(500, "Error while uploading");
+    }
+
     const userCreation = await userModel.create({
       fullName: fullName,
       avatar: avatarCloud.url,
@@ -56,23 +55,22 @@ const registerUser = async (req, res) => {
       password,
       avatarPublicId: avatarCloud.public_id,
     });
+
     const createdUser = await User.findById(userCreation._id).select(
       "-password -refreshToken"
     );
 
     if (!createdUser) {
-      throw new APIerror(
-        500,
-        "Something went wrong while registering the user"
-      );
+      throw new APIerror(404, "Unable to create user");
     }
+
     return res
       .status(200)
       .json(new APIResponse(200, { createdUser }, "Success"));
   } catch (error) {
     return res
-      .status(500)
-      .json(new APIerror(500, null, "Internal Server Error" || error.message));
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
 

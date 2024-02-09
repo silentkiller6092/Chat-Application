@@ -24,3 +24,20 @@
   justify-content: center;
   align-items: center;
 }
+.error {
+  width: 90%;
+  text-align: left;
+  margin-top: -16px;
+  font-size: 11px;
+  color: rgba(255, 0, 0, 0.692);
+}
+input[type="file"]::file-selector-button {
+  color: white;
+  background-color: rgb(15 23 42 / var(--tw-bg-opacity));
+  transition: 1s;
+  border: none;
+  cursor: pointer;
+  color: rgb(156 163 175 / var(--tw-text-opacity));
+  padding-left: 1rem /* 16px */;
+  padding-right: 1rem;
+}
