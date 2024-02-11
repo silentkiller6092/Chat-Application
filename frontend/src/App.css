@@ -41,3 +41,17 @@ input[type="file"]::file-selector-button {
   padding-left: 1rem /* 16px */;
   padding-right: 1rem;
 }
+/* This will target webkit-based browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+  width: 5px; /* Adjust the width as needed */
+}
+
+/* This will target the track */
+::-webkit-scrollbar-track {
+  background: transparent; /* Set the scrollbar track background color */
+}
+
+/* This will target the thumb (the draggable part of the scrollbar) */
+::-webkit-scrollbar-thumb {
+  background: #e5dfdf28; /* Set the scrollbar thumb color */
+}

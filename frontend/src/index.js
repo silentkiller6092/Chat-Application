@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import Spinner from "./components/Spinner";
+import ChatPage from "./components/ChatPage";
 
 const router = createBrowserRouter([
   {
@@ -11,8 +11,8 @@ const router = createBrowserRouter([
     element: <App />,
   },
   {
-    path: "/spinner",
-    element: <Spinner />,
+    path: "/ChatPage",
+    element: <ChatPage />,
   },
 ]);
 
