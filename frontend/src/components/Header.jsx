@@ -27,7 +27,12 @@ function Header() {
       <Container fluid>
         <Navbar.Brand href="#" className="text-white">
           <span className="iconclass">
-            <ChatIcon className="mr-1" /> Let's Chat
+            <img
+              src="logo192.png"
+              alt="User Logo"
+              className="w-12 h-12 rounded-full"
+            />{" "}
+            Neha
           </span>
         </Navbar.Brand>
         <Navbar.Toggle
