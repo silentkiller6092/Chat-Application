@@ -5,7 +5,6 @@ import App from "./App";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import ChatPage from "./components/ChatPage";
 import Header from "./components/Header";
-import ChatPagesmallDevice from "./components/ChatPagesmallDevice";
 
 const router = createBrowserRouter([
   {
@@ -21,16 +20,7 @@ const router = createBrowserRouter([
     path: "/ChatPage",
     element: (
       <React.Fragment>
-        <Header />
-        <ChatPage />
-      </React.Fragment>
-    ),
-  },
-  {
-    path: "/smallDeive",
-    element: (
-      <React.Fragment>
-        <ChatPagesmallDevice />
+        <ChatPage showHeader={true} />
       </React.Fragment>
     ),
   },

@@ -75,9 +75,9 @@ const registerUser = async (req, res) => {
 };
 
 const loginuser = async (req, res) => {
-  const { email, username, password } = req.body;
   try {
-    if (!(email || username)) throw new APIerror(400, "Fields can't be empty");
+    const { email, username, password } = req.body;
+    if (!email && !username) throw new APIerror(400, "Fields can't be empty");
     const userCHek = await userModel.findOne({
       $or: [{ email: email }, { username: username }],
     });
@@ -98,10 +98,10 @@ const loginuser = async (req, res) => {
       .cookie("accessToken", await accessToken, options)
       .cookie("refreshToken", await refreshToken, options)
       .json(new APIResponse(200, loggedinuser));
-  } catch (e) {
+  } catch (error) {
     return res
-      .status(500)
-      .json(new APIerror(500, null, "Internal Server Error" || error.message));
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
 

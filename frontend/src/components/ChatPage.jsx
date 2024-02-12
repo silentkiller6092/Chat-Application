@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import UserChatPage from "./UserChatPage";
 import { useMediaQuery } from "react-responsive";
 import ChatPagesmallDevice from "./ChatPagesmallDevice";
-const ChatPage = () => {
+import Header from "./Header";
+
+const ChatPage = ({ showHeader }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [openChatsPage, setOpenChatPage] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 991 });
@@ -11,34 +13,20 @@ const ChatPage = () => {
     { id: 2, name: "John", img: "logo192.png", description: "Description 2" },
     // Add more users as needed
   ];
+
   const openChatPage = (user) => {
     setSelectedUser(user);
     setOpenChatPage(true);
   };
-  //   Working for Mobile view
-  return (
-    <div>
-      {isMobile ? (
-        <div>
-          <ChatPagesmallDevice />
-        </div>
-      ) : (
+
+  if (!isMobile) {
+    return (
+      <div>
+        <Header />
         <div className="flex align-middle lg:mx-3 lg:mt-3 ">
           <div className="w-full lg:w-1/4 addUserside mx-auto ">
             <div className="w-full  bg-[#131518] ">
               <div class="w-full flex-1 flex flex-col h-screen  rounded-lg">
-                {/* <div class="flex sm:items-center justify-between lg:py-3 bg-[#181818]">
-                  <div className="border-b-2 flex items-center w-full mx-2">
-                    <div className="border-2 border-gray-300 rounded-full">
-                      <img
-                        src="logo192.png"
-                        alt="User Logo"
-                        className="w-12 h-12 rounded-full"
-                      />
-                    </div>
-                    <p className="text-white text-xl mt-3 ml-2">Channel Name</p>
-                  </div>
-                </div> */}
                 <div className="flex flex-col space-y-4 mb-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
                   {users.map((user) => (
                     <div
@@ -84,8 +72,12 @@ const ChatPage = () => {
             )}
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>{isMobile && <ChatPagesmallDevice showHeader={showHeader} />}</div>
   );
 };
 

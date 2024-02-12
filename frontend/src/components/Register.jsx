@@ -3,6 +3,7 @@ import Login from "./Login";
 import Input from "./Input";
 import { useForm } from "react-hook-form";
 import Spinner from "./Spinner";
+import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -27,6 +28,7 @@ const schema = z.object({
 });
 
 function Register() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -64,7 +66,10 @@ function Register() {
         throw new Error(responseData.errors);
       }
 
-      return await submitRes.json();
+      const responseJson = await submitRes.json();
+      if (responseJson.statusCode == 200) {
+        navigate("/chatPage");
+      }
     } catch (err) {
       setError("root", {
         message: err.message,

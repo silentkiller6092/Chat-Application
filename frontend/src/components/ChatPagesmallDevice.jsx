@@ -2,7 +2,8 @@ import React, { useState } from "react";
 
 import { FaArrowLeft } from "react-icons/fa";
 import { FaEllipsisV } from "react-icons/fa";
-const ChatPagesmallDevice = () => {
+import Header from "./Header";
+const ChatPagesmallDevice = ({ showHeader }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [openChatsPage, setOpenChatPage] = useState(true);
 
@@ -24,22 +25,11 @@ const ChatPagesmallDevice = () => {
 
   return (
     <div>
+      {showHeader && openChatsPage && <Header />}
       {openChatsPage ? (
         <div className="w-full lg:w-1/4 addUserside mx-auto ">
           <div className="w-full  bg-[#131518]">
             <div class="w-full flex-1 flex flex-col h-screen  rounded-lg">
-              {/* <div class="flex sm:items-center justify-between lg:py-3 bg-[#181818]">
-                <div className="border-b-2 flex items-center w-full mx-2">
-                  <div className="border-2 border-gray-300 rounded-full">
-                    <img
-                      src="logo192.png"
-                      alt="User Logo"
-                      className="w-12 h-12 rounded-full"
-                    />
-                  </div>
-                  <p className="text-white text-xl mt-3 ml-2">Channel Name</p>
-                </div>
-              </div> */}
               <div className="flex flex-col space-y-4 mb-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
                 {users.map((user) => (
                   <div

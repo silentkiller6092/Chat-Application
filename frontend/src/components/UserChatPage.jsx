@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { FaEllipsisV } from "react-icons/fa";
 
 const UserChatPage = ({ userName, userImg, usercame }) => {
