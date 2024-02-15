@@ -91,14 +91,17 @@ const loginuser = async (req, res) => {
       await generateAccessTokenandRefreshToken(userCHek._id.toString());
 
     const options = {
+      sameSite: "None",
       httpOnly: true,
       secure: true,
     };
+    if ((process.env.NODE_ENV = "production")) options.secure = true;
     return res
       .cookie("accessToken", await accessToken, options)
       .cookie("refreshToken", await refreshToken, options)
       .json(new APIResponse(200, loggedinuser));
   } catch (error) {
+    console.log(error);
     return res
       .status(error.statusCode || 500)
       .json(new APIerror(error.statusCode || 500, null, error.message));

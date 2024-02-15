@@ -6,7 +6,7 @@ import Header from "./Header";
 
 const ChatPage = ({ showHeader }) => {
   const [selectedUser, setSelectedUser] = useState(null);
-  const [openChatsPage, setOpenChatPage] = useState(false);
+
   const isMobile = useMediaQuery({ maxWidth: 991 });
   const users = [
     { id: 1, name: "Neha", img: "logo192.png", description: "Description 1" },
@@ -16,7 +16,6 @@ const ChatPage = ({ showHeader }) => {
 
   const openChatPage = (user) => {
     setSelectedUser(user);
-    setOpenChatPage(true);
   };
 
   if (!isMobile) {
@@ -77,7 +76,11 @@ const ChatPage = ({ showHeader }) => {
   }
 
   return (
-    <div>{isMobile && <ChatPagesmallDevice showHeader={showHeader} />}</div>
+    <div>
+      {isMobile && (
+        <ChatPagesmallDevice showHeader={showHeader} users={users} />
+      )}
+    </div>
   );
 };
 

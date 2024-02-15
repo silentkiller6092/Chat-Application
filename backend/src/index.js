@@ -8,7 +8,6 @@ const io = require("socket.io")(server, {
 });
 connectDB();
 io.on("connection", (socket) => {
-  console.log("Estalishing connection");
   socket.on("chat", (chat) => {
     io.emit("chat", chat);
   });

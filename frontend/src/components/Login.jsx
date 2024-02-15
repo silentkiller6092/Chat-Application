@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Input from "./Input";
+
 import Register from "./Register";
 import { useForm } from "react-hook-form";
 import Spinner from "./Spinner";
@@ -20,6 +21,35 @@ function Login() {
   } = useForm({
     resolver: zodResolver(schema),
   });
+  // const onSubmits = async (data) => {
+  //   try {
+  //     const body = JSON.stringify(data);
+  //     const submitRes = await fetch(
+  //       `${process.env.REACT_APP_API_URL}users/login`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json", // Ensure Content-Type is set to application/json
+  //         },
+  //         body: body,
+  //       }
+  //     );
+
+  //     if (!submitRes.ok) {
+  //       const responseData = await submitRes.json();
+  //       throw new Error(responseData.errors);
+  //     }
+
+  //     const responseJson = await submitRes.json();
+  //     if (responseJson.statusCode == 200) {
+  //       navigate("/chatPage");
+  //     }
+  //   } catch (err) {
+  //     setError("root", {
+  //       message: err.message,
+  //     });
+  //   }
+  // };
   const onSubmits = async (data) => {
     try {
       const body = JSON.stringify(data);
@@ -27,10 +57,12 @@ function Login() {
         `${process.env.REACT_APP_API_URL}users/login`,
         {
           method: "POST",
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json", // Ensure Content-Type is set to application/json
           },
           body: body,
+          credentials: "include",
         }
       );
 
@@ -39,8 +71,16 @@ function Login() {
         throw new Error(responseData.errors);
       }
 
+      // Extract token from cookies
+      const accessToken = getCookie("accessToken");
+      console.log(accessToken);
+      // Store token in local storage or wherever you prefer
+      localStorage.setItem("token", accessToken);
+
       const responseJson = await submitRes.json();
-      if (responseJson.statusCode == 200) {
+      console.log(responseJson);
+      if (responseJson.statusCode === 200) {
+        // Navigate to chat page or perform other actions
         navigate("/chatPage");
       }
     } catch (err) {
@@ -49,6 +89,13 @@ function Login() {
       });
     }
   };
+
+  // Helper function to get cookie by name
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
 
   const [showRegister, setShowRegister] = useState(false);
   const registerButon = () => {

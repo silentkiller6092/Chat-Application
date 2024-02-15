@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const grouprouter = require("./routes/group.routes");
 const sendrequestrouter = require("./routes/invitesent.routes");
+const Searchrouter = require("./routes/search.routes");
 const app = express();
 app.use(
   cors({
@@ -18,4 +19,5 @@ app.use(cookieParser());
 app.use("/api/v1/users", userrouter);
 app.use("/api/v1/group", grouprouter);
 app.use("/api/v1/sendRequest", sendrequestrouter);
+app.use("/api/v1/search", Searchrouter);
 module.exports = app;
