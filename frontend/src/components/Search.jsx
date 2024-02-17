@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaUserPlus, FaUserFriends } from "react-icons/fa";
 import Spinner from "./Spinner";
-
+import { useMediaQuery } from "react-responsive";
 const Search = ({ username, closeSearchPage }) => {
   const [closePage, setClosePage] = useState(true);
   const [results, setResults] = useState([]);
   const [loader, setLoader] = useState(false);
-
+  const isLgScreen = useMediaQuery({ minWidth: 1024 });
   const handleClose = () => {
     setClosePage(false);
     closeSearchPage(); // Call the callback function to close the Search component
@@ -45,7 +45,9 @@ const Search = ({ username, closeSearchPage }) => {
   useEffect(() => {
     handleSearch(username);
   }, [username]);
-
+  const sendRequest = (id) => {
+    console.log(id);
+  };
   if (loader) {
     return <Spinner />;
   }
@@ -63,7 +65,7 @@ const Search = ({ username, closeSearchPage }) => {
       {closePage && (
         <div className="w-full bg-[#131518] fixed inset-0 flex items-center justify-center z-50">
           <div className="w-full flex-1 flex flex-col rounded-lg">
-            <div className="flex flex-col space-y-4 mt-5 mx-5 mb-3 h-screen overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
+            <div className="flex flex-col space-y-4 mt-32  mb-3 h-screen overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
               {results.length > 0 ? (
                 results.map((item) => (
                   <div
@@ -78,14 +80,25 @@ const Search = ({ username, closeSearchPage }) => {
                         onLoad={() => setLoader(false)} // Set loader to false when the image loads
                       />
                     </div>
-                    <div className="ml-2">
+                    <div className="ml-2 flex-1">
                       <p className="text-gray-300 font-bold mb-1 leading-3">
                         {item.fullName}
                       </p>
                       <p className="text-gray-200 mb-0 leading-3">
-                        {item.username}
+                        {item.username.length > 10 && !isLgScreen
+                          ? `${item.username.substring(0, 20)}...`
+                          : item.username}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      className="text-white flex bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 shadow-lg shadow-cyan-500/50 dark:shadow-lg dark:shadow-cyan-800/80 font-medium rounded-lg text-sm px-3 py-1.5 md:px-5 md:py-2.5 text-center me-2 mb-2"
+                      style={{ alignSelf: "flex-end" }} // Align button to the right
+                      onClick={() => sendRequest(item._id)}
+                    >
+                      <FaUserPlus size={20} className="mr-1" color="white" />
+                      Send Request
+                    </button>
                   </div>
                 ))
               ) : (

@@ -130,7 +130,22 @@ const logout = async (req, res) => {
   }
 };
 
+const currentUser = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    if (!userId) throw new APIerror(401, "Not logged in");
+    const userDetails = await userModel.findById(userId);
+
+    return res
+      .status(200)
+      .json(new APIResponse(200, { userDetails }, "Success"));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
+  }
+};
 const updateDeatils = async (req, res) => {
   // TODO: add the controller to add update details feature
 };
-module.exports = { registerUser, loginuser, logout };
+module.exports = { registerUser, loginuser, logout, currentUser };

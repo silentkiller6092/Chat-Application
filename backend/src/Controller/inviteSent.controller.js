@@ -105,18 +105,15 @@ const acceptRequest = async (req, res) => {
     const findUser = await userModel.findOne({ username: username });
 
     if (!findUser) {
-      return res
-        .status(400)
-        .json(new APIerror(400, "This user does not exist."));
+      throw new APIerror(404, "User not found");
     }
 
     const requestedUserID = findUser._id.toString();
-
     // Update the status to "accepted" for the specified request
     const updateResult = await FriendRequestSent.updateOne(
       {
-        inviterID: new mongoose.Types.ObjectId(req.user._id),
-        "requests.requestedID": requestedUserID,
+        inviterID: new mongoose.Types.ObjectId(requestedUserID),
+        "requests.requestedID": ownerid,
       },
       {
         $set: {
@@ -124,18 +121,15 @@ const acceptRequest = async (req, res) => {
         },
       }
     );
-
     if (!updateResult) {
-      return res
-        .status(400)
-        .json(new APIerror(400, "Request not found or already accepted."));
+      throw new APIerror(404, "Already accepted");
     }
 
     return res.status(200).json(new APIResponse(200, updateResult));
-  } catch (e) {
+  } catch (error) {
     return res
-      .status(500)
-      .json(new APIerror(500, e.message || "Something went wrong"));
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
 
@@ -148,9 +142,7 @@ const rejectRequest = async (req, res) => {
     const findUser = await userModel.findOne({ username: username });
 
     if (!findUser) {
-      return res
-        .status(400)
-        .json(new APIerror(400, "This user does not exist."));
+      throw new APIerror(404, "No Request Recive by username");
     }
 
     const requestedUserID = findUser._id.toString();
@@ -173,10 +165,10 @@ const rejectRequest = async (req, res) => {
     }
 
     return res.status(200).json(new APIResponse(200, updateResult));
-  } catch (e) {
+  } catch (error) {
     return res
-      .status(500)
-      .json(new APIerror(500, e.message || "Something went wrong"));
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
 const blockRequest = async (req, res) => {
@@ -188,9 +180,7 @@ const blockRequest = async (req, res) => {
     const findUser = await userModel.findOne({ username: username });
 
     if (!findUser) {
-      return res
-        .status(400)
-        .json(new APIerror(400, "This user does not exist."));
+      throw new APIerror(400, "User doesnt exist");
     }
 
     const requestedUserID = findUser._id.toString();
@@ -242,16 +232,35 @@ const acceptedOwnerRequest = async (req, res) => {
     ]);
 
     if (!findid || findid.length === 0) {
-      return res
-        .status(404)
-        .json(new APIerror(404, "No accepted requests found."));
+      throw new APIerror(404, "No Request yet");
     }
 
-    return res.status(200).json(new APIResponse(200, findid, "Success"));
-  } catch (e) {
-    return res.status(500).json(new APIerror(500, null, e.message));
+    // Array to store user details corresponding to each requestedID
+    const users = [];
+
+    // Iterate over each item in findid array
+    for (const item of findid) {
+      const requestedID = item.requests.requestedID;
+      // Query the database to find user details based on requestedID
+      const user = await userModel
+        .findById(requestedID)
+        .select("-password -avatarPublicId -createdAt -updatedAt -email");
+
+      if (user) {
+        // Push user details to users array
+        users.push(user);
+      }
+    }
+
+    // Return the users array as part of the response
+    return res.status(200).json(new APIResponse(200, users, "Success"));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
+
 //Check all requests sent by the logged-in user (owner).
 const OwnerRequestPending = async (req, res) => {
   try {

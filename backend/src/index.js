@@ -8,10 +8,20 @@ const io = require("socket.io")(server, {
 });
 connectDB();
 io.on("connection", (socket) => {
-  socket.on("chat", (chat) => {
-    io.emit("chat", chat);
+  socket.on("setup", (userdata) => {
+    // socket.broadcast.emit("chat", chat);
+    socket.join(userdata.recipientId);
+    socket.emit("connected");
+  });
+  socket.on("joinedChat", (room) => {
+    socket.join(room);
+  });
+  socket.on("newMessage", (newMessageRecived) => {
+    let chat = newMessageRecived;
+    console.log(chat);
   });
 });
+
 server.listen(4000, () => {
   console.log("Server listening on port " + 4000);
 });

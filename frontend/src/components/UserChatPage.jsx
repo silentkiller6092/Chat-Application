@@ -2,28 +2,28 @@ import React, { useEffect, useState } from "react";
 import { FaEllipsisV } from "react-icons/fa";
 import io from "socket.io-client";
 
-const UserChatPage = ({ userId, userName, userImg, users }) => {
+const UserChatPage = ({ userId, userName, userImg, currentUser }) => {
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState([]);
+  const [connected, setconnected] = useState(false);
   const socket = io("http://127.0.0.1:4000");
 
   useEffect(() => {
     socket.on("chat", (message) => {
       setMessages((prev) => [...prev, message]);
     });
-
-    // Cleanup function to remove event listeners when component unmounts
     return () => {
       socket.off("chat");
     };
-  }, [userId]); // Include userId in dependency array to re-subscribe on userId change
+  }, [userId, currentUser]);
 
   function sendMessage() {
     if (messageInput.trim() !== "") {
-      socket.emit("chat", {
+      socket.emit("setup", {
+        // Emit the "chat" event here
         message: messageInput,
-        senderId: userId,
-        recipientId: 2, // Example recipientId, change as needed
+        senderId: currentUser,
+        recipientId: userId,
       });
       setMessageInput("");
     }
@@ -53,9 +53,12 @@ const UserChatPage = ({ userId, userName, userImg, users }) => {
             id="messages"
             className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
           >
-            {messages.map((message, index) => (
-              <div></div>
-            ))}
+            {messages &&
+              messages.map((message) => (
+                <div key={message.recipientId}>
+                  {<p className="text-white">{message.message}</p>}
+                </div>
+              ))}
           </div>
           <div className="border-t-2 border-gray-200 px-4 pt-4 mb-2 sm:mb-0">
             <div className="relative flex">
