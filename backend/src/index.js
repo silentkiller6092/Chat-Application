@@ -7,18 +7,38 @@ const io = require("socket.io")(server, {
   },
 });
 connectDB();
+let users = [];
+let userRooms = {}; // Object to store user-room associations
+
 io.on("connection", (socket) => {
-  socket.on("setup", (userdata) => {
-    // socket.broadcast.emit("chat", chat);
-    socket.join(userdata.recipientId);
-    socket.emit("connected");
+  socket.on("addUser", (userID) => {
+    const existingUser = users.find((user) => user.userID === userID);
+    if (existingUser) {
+      existingUser.socketID = socket.id;
+    } else {
+      const user = { userID: userID, socketID: socket.id };
+      users.push(user);
+    }
+    io.emit("getUser", users);
   });
-  socket.on("joinedChat", (room) => {
-    socket.join(room);
+
+  socket.on("new User", (userID, currentUser) => {
+    const sortedIds = [userID, currentUser].sort().join("_");
+    const roomName = `room_${sortedIds}`;
+    userRooms[userID] = roomName; // Associate user with room
+    socket.join(roomName);
   });
-  socket.on("newMessage", (newMessageRecived) => {
-    let chat = newMessageRecived;
-    console.log(chat);
+
+  socket.on("sendMessage", (message) => {
+    const roomName = userRooms[message.recipientId];
+    if (roomName && roomName === userRooms[message.recipientId]) {
+      io.to(roomName).emit("getMessage", message);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    users = users.filter((user) => user.socketID !== socket.id);
+    io.emit("getUser", users);
   });
 });
 

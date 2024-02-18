@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import Button from "react-bootstrap/Button";
+
+import Cookies from "js-cookie";
 import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
+
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import {
@@ -44,13 +45,13 @@ function Header() {
           credentials: "include",
         }
       );
-
       if (!userDetails.ok) {
         const responseData = await userDetails.json();
         throw new Error(responseData.errors);
       }
 
       const responseJson = await userDetails.json();
+
       setResults(responseJson.data.userDetails);
     } catch (error) {
       console.error("Error:", error.message);

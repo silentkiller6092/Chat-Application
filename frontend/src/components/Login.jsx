@@ -71,14 +71,8 @@ function Login() {
         throw new Error(responseData.errors);
       }
 
-      // Extract token from cookies
-      const accessToken = getCookie("accessToken");
-      console.log(accessToken);
-      // Store token in local storage or wherever you prefer
-      localStorage.setItem("token", accessToken);
-
       const responseJson = await submitRes.json();
-      console.log(responseJson);
+
       if (responseJson.statusCode === 200) {
         // Navigate to chat page or perform other actions
         navigate("/chatPage");

@@ -9,6 +9,7 @@ const ChatPage = ({ showHeader }) => {
   const [loader, setLoader] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [results, setResults] = useState([]);
+  const [cresults, csetResults] = useState([]);
   const isMobile = useMediaQuery({ maxWidth: 991 });
 
   const handleSearch = async () => {
@@ -42,6 +43,29 @@ const ChatPage = ({ showHeader }) => {
   const openChatPage = (user) => {
     setSelectedUser(user);
   };
+  const currentUserDetails = async () => {
+    try {
+      const userDetails = await fetch(
+        `${process.env.REACT_APP_API_URL}users/getCurrentUser`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!userDetails.ok) {
+        const responseData = await userDetails.json();
+        throw new Error(responseData.errors);
+      }
+
+      const responseJson = await userDetails.json();
+      csetResults(responseJson.data.userDetails);
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    currentUserDetails();
+  }, []);
   if (loader) {
     return <Spinner />;
   }
@@ -93,7 +117,7 @@ const ChatPage = ({ showHeader }) => {
                 userName={selectedUser.fullName}
                 userImg={selectedUser.avatar}
                 userId={selectedUser._id}
-                currentUser={"65cd0313f54e5c8dfa4dcc01"}
+                currentUser={cresults._id}
               />
             ) : (
               <div>

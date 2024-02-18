@@ -1,26 +1,49 @@
-import React, { useEffect, useState } from "react";
 import { FaEllipsisV } from "react-icons/fa";
 import io from "socket.io-client";
-
+import React, { useState, useEffect } from "react";
 const UserChatPage = ({ userId, userName, userImg, currentUser }) => {
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState([]);
-  const [connected, setconnected] = useState(false);
-  const socket = io("http://127.0.0.1:4000");
+  const [allMessage, setAllMessages] = useState([]);
+  const useSocket = () => {
+    const [socket, setSocket] = useState(null);
+
+    useEffect(() => {
+      const newSocket = io("http://127.0.0.1:4000");
+      setSocket(newSocket);
+
+      // Cleanup function to disconnect socket when component unmounts
+      return () => {
+        newSocket.disconnect();
+      };
+    }, []);
+
+    return socket;
+  };
+  const socket = useSocket();
+  useEffect(() => {
+    if (socket) {
+      socket.on("connect", () => {
+        socket.emit("addUser", userId, currentUser);
+      });
+      socket.on("getUser", (users) => {
+        console.log("Active users users:", users);
+      });
+
+      socket.on("getMessage", (message) => {
+        setMessages((prev) => [...prev, message]);
+      });
+    }
+  }, [userId, socket]);
 
   useEffect(() => {
-    socket.on("chat", (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-    return () => {
-      socket.off("chat");
-    };
-  }, [userId, currentUser]);
-
+    if (socket) {
+      socket.emit("new User", userId, currentUser);
+    }
+  }, [userId, socket, currentUser]);
   function sendMessage() {
     if (messageInput.trim() !== "") {
-      socket.emit("setup", {
-        // Emit the "chat" event here
+      socket.emit("sendMessage", {
         message: messageInput,
         senderId: currentUser,
         recipientId: userId,
@@ -28,6 +51,20 @@ const UserChatPage = ({ userId, userName, userImg, currentUser }) => {
       setMessageInput("");
     }
   }
+
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      const filteredMessages = messages.filter((message) => {
+        return (
+          (userId === message.senderId &&
+            currentUser === message.recipientId) || // Message sent by userId to currentUser
+          (userId === message.recipientId && currentUser === message.senderId) // Message sent by currentUser to userId
+        );
+      });
+
+      setAllMessages(filteredMessages);
+    }
+  }, [messages, currentUser, userId]);
 
   return (
     <div>
@@ -48,15 +85,22 @@ const UserChatPage = ({ userId, userName, userImg, currentUser }) => {
               </div>
             </div>
           </div>
-
           <div
             id="messages"
             className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
           >
-            {messages &&
-              messages.map((message) => (
+            {allMessage &&
+              allMessage.map((message) => (
                 <div key={message.recipientId}>
-                  {<p className="text-white">{message.message}</p>}
+                  {currentUser === message.senderId ? (
+                    <p className="text-white text-right">
+                      mesg send: {message.message}
+                    </p>
+                  ) : (
+                    <p className="text-white text-left">
+                      mesg came: {message.message}
+                    </p>
+                  )}
                 </div>
               ))}
           </div>
@@ -93,5 +137,4 @@ const UserChatPage = ({ userId, userName, userImg, currentUser }) => {
     </div>
   );
 };
-
 export default UserChatPage;
