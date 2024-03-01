@@ -12,26 +12,18 @@ const sendRequest = async (req, res) => {
     const ownerid = req.user._id;
     const findid = await userModel.findOne({ username: username });
     const requestedID = findid._id.toString();
-
+    const requestedUsername = findid.username;
     if (!requestedID) {
-      return res
-        .status(400)
-        .json(new APIerror(400, "This user does not exist."));
+      throw new APIerror(404, "User not found");
     }
-
-    // Check if there is an existing request with the same requestedID and a "pending" status
     const existingRequest = await FriendRequestSent.findOne({
       "requests.requestedID": requestedID,
       "requests.inviterID": ownerid,
     });
 
     if (existingRequest) {
-      return res
-        .status(400)
-        .json(new APIerror(400, null, "Request already sent."));
+      throw new APIerror(408, "Request already sent");
     }
-
-    // If no existing request is found, push a new request with a "pending" status
     const sentRequest = await FriendRequestSent.updateOne(
       { inviterID: ownerid },
       {
@@ -50,27 +42,25 @@ const sendRequest = async (req, res) => {
     );
 
     if (!sentRequest) {
-      return res
-        .status(500)
-        .json(new APIerror(500, "Some error occurred while sending request."));
+      throw new APIerror(401, "Some Error occurred while Sedning request");
     }
 
-    return res.status(200).json(new APIResponse(200, sentRequest, "Success"));
-  } catch (e) {
-    return res.status(500).json(new APIerror(500, null, e.message));
+    const responseData = {
+      username: requestedUsername,
+      ...sentRequest,
+    };
+
+    return res.status(200).json(new APIResponse(200, responseData, "Success"));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
-
-// Check all requests received by the logged-in user.
 
 const totalOwnerPendingRequestes = async (req, res) => {
   try {
     const findid = await FriendRequestSent.aggregate([
-      {
-        $match: {
-          "requests.requestedID": new mongoose.Types.ObjectId(req.user._id),
-        },
-      },
       {
         $unwind: "$requests",
       },
@@ -81,18 +71,29 @@ const totalOwnerPendingRequestes = async (req, res) => {
         },
       },
     ]);
-
     if (!findid || findid.length === 0) {
-      return res
-        .status(404)
-        .json(
-          new APIerror(404, null, "No requests received by the owner found.")
-        );
+      throw new APIerror(400, "No Pednding request");
     }
+    const users = [];
 
+    // Iterate over each item in findid array
+    for (const item of findid) {
+      const requestedID = item.requests.requestedID;
+      // Query the database to find user details based on requestedID
+      const user = await userModel
+        .findById(requestedID)
+        .select("-password -avatarPublicId -updatedAt ");
+
+      if (user) {
+        // Push user details to users array
+        users.push(user);
+      }
+    }
     return res.status(200).json(new APIResponse(200, findid, "Success"));
-  } catch (e) {
-    return res.status(500).json(new APIerror(500, null, e.message));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
 
@@ -107,13 +108,11 @@ const acceptRequest = async (req, res) => {
     if (!findUser) {
       throw new APIerror(404, "User not found");
     }
-
     const requestedUserID = findUser._id.toString();
-    // Update the status to "accepted" for the specified request
     const updateResult = await FriendRequestSent.updateOne(
       {
         inviterID: new mongoose.Types.ObjectId(requestedUserID),
-        "requests.requestedID": ownerid,
+        "requests.requestedID": new mongoose.Types.ObjectId(ownerid),
       },
       {
         $set: {
@@ -133,18 +132,89 @@ const acceptRequest = async (req, res) => {
   }
 };
 
-const rejectRequest = async (req, res) => {
+// Get followings
+const following = async (req, res) => {
   const { username } = req.params;
   try {
-    const ownerid = req.user._id;
-
-    // Find the user by username
     const findUser = await userModel.findOne({ username: username });
 
     if (!findUser) {
+      throw new APIerror(404, "User not found");
+    }
+    const requestedUserID = findUser._id.toString();
+    const updateResult = await FriendRequestSent.aggregate([
+      {
+        $unwind: {
+          path: "$requests",
+        },
+      },
+      {
+        $match: {
+          "requests.requestedID": new mongoose.Types.ObjectId(requestedUserID),
+          "requests.status": "accepted",
+        },
+      },
+    ]);
+
+    if (!updateResult) {
+      throw new APIerror(404, "Already accepted");
+    }
+    const updatedData = await FriendRequestSent.findOne({
+      "requests.requestedID": requestedUserID,
+    });
+    return res.status(200).json(new APIResponse(200, updateResult));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
+  }
+};
+
+// Get followers
+const folllowers = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const findUser = await userModel.findOne({ username: username });
+
+    if (!findUser) {
+      throw new APIerror(404, "User not found");
+    }
+    const requestedUserID = findUser._id.toString();
+    const updateResult = await FriendRequestSent.aggregate([
+      {
+        $unwind: {
+          path: "$requests",
+        },
+      },
+      {
+        $match: {
+          "requests.inviterID": new mongoose.Types.ObjectId(requestedUserID),
+          "requests.status": "accepted",
+        },
+      },
+    ]);
+
+    if (!updateResult) {
+      throw new APIerror(404, "Already accepted");
+    }
+    const updatedData = await FriendRequestSent.findOne({
+      "requests.requestedID": requestedUserID,
+    });
+    return res.status(200).json(new APIResponse(200, updateResult));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
+  }
+};
+
+const rejectRequest = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const findUser = await userModel.findOne({ username: username });
+    if (!findUser) {
       throw new APIerror(404, "No Request Recive by username");
     }
-
     const requestedUserID = findUser._id.toString();
     const updateResult = await FriendRequestSent.updateOne(
       {
@@ -157,13 +227,9 @@ const rejectRequest = async (req, res) => {
         },
       }
     );
-
     if (!updateResult) {
-      return res
-        .status(400)
-        .json(new APIerror(400, "Request not found or already accepted."));
+      throw new APIerror(400, "Already Requeste Rejected by user");
     }
-
     return res.status(200).json(new APIResponse(200, updateResult));
   } catch (error) {
     return res
@@ -174,9 +240,6 @@ const rejectRequest = async (req, res) => {
 const blockRequest = async (req, res) => {
   const { username } = req.params;
   try {
-    const ownerid = req.user._id;
-
-    // Find the user by username
     const findUser = await userModel.findOne({ username: username });
 
     if (!findUser) {
@@ -199,16 +262,14 @@ const blockRequest = async (req, res) => {
     );
 
     if (!updateResult) {
-      return res
-        .status(400)
-        .json(new APIerror(400, "Request not found or already accepted."));
+      throw new APIerror(400, "Request Not Found or Already Blocked");
     }
 
     return res.status(200).json(new APIResponse(200, updateResult));
-  } catch (e) {
+  } catch (error) {
     return res
-      .status(500)
-      .json(new APIerror(500, e.message || "Something went wrong"));
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
 
@@ -226,7 +287,7 @@ const acceptedOwnerRequest = async (req, res) => {
       {
         $match: {
           "requests.inviterID": new mongoose.Types.ObjectId(req.user._id),
-          "requests.status": "accepted", // Corrected the status spelling
+          "requests.$.status": "accepted", // Corrected the status spelling
         },
       },
     ]);
@@ -282,17 +343,65 @@ const OwnerRequestPending = async (req, res) => {
     ]);
 
     if (!findid || findid.length === 0) {
-      return res
-        .status(404)
-        .json(new APIerror(404, null, "No requests sent by the owner found."));
+      throw new APIerror(400, "You haven't made any requests");
     }
+    const users = [];
 
-    return res.status(200).json(new APIResponse(200, findid, "Success"));
-  } catch (e) {
-    return res.status(500).json(new APIerror(500, null, e.message));
+    // Iterate over each item in findid array
+    for (const item of findid) {
+      const requestedID = item.requests.requestedID;
+      // Query the database to find user details based on requestedID
+      const user = await userModel
+        .findById(requestedID)
+        .select("-password -avatarPublicId -updatedAt");
+      if (user) {
+        users.push(user);
+      }
+    }
+    return res.status(200).json(new APIResponse(200, users, "Success"));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
   }
 };
 
+const getRequestDetail = async (req, res) => {
+  const { username } = req.params;
+  try {
+    // Find the user by username
+    const findUser = await userModel.findOne({ username: username });
+
+    if (!findUser) {
+      throw new APIerror(404, "User not found");
+    }
+    const requestedUserID = findUser._id.toString();
+    const findid = await FriendRequestSent.aggregate([
+      {
+        $match: {
+          inviterID: new mongoose.Types.ObjectId(req.user._id),
+        },
+      },
+      {
+        $unwind: "$requests",
+      },
+      {
+        $match: {
+          "requests.requestedID": new mongoose.Types.ObjectId(requestedUserID),
+        },
+      },
+    ]);
+    if (!findid) {
+      throw new APIerror(404, "Already accepted");
+    }
+
+    return res.status(200).json(new APIResponse(200, findid, "Success"));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
+  }
+};
 module.exports = {
   sendRequest,
   totalOwnerPendingRequestes,
@@ -301,4 +410,7 @@ module.exports = {
   blockRequest,
   acceptedOwnerRequest,
   OwnerRequestPending,
+  getRequestDetail,
+  following,
+  folllowers,
 };

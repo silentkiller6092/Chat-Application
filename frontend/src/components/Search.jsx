@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { FaTimes, FaUserPlus, FaUserFriends } from "react-icons/fa";
+import { FaTimes, FaUserPlus } from "react-icons/fa";
 import Spinner from "./Spinner";
 import { useMediaQuery } from "react-responsive";
+import { useNavigate } from "react-router-dom";
 const Search = ({ username, closeSearchPage }) => {
   const [closePage, setClosePage] = useState(true);
   const [results, setResults] = useState([]);
   const [loader, setLoader] = useState(false);
+  const navigate = useNavigate();
   const isLgScreen = useMediaQuery({ minWidth: 1024 });
   const handleClose = () => {
     setClosePage(false);
@@ -45,8 +47,28 @@ const Search = ({ username, closeSearchPage }) => {
   useEffect(() => {
     handleSearch(username);
   }, [username]);
-  const sendRequest = (id) => {
-    console.log(id);
+  const sendRequest = async (username) => {
+    // try {
+    //   setsmallLoder(true);
+    //   const friednRequestSent = await fetch(
+    //     `${process.env.REACT_APP_API_URL}sendRequest/sendRequests/${username}`,
+    //     {
+    //       method: "POST",
+    //       credentials: "include",
+    //     }
+    //   );
+    //   if (!friednRequestSent.ok) {
+    //     const responseData = await friednRequestSent.json();
+    //     throw new Error(responseData.errors);
+    //   }
+    //   const responseJson = await friednRequestSent.json();
+    //   setRequestsent(responseJson.data);
+    // } catch (error) {
+    //   console.error(error);
+    // } finally {
+    //   setsmallLoder(false);
+    // }
+    navigate(`/profile/${username}`);
   };
   if (loader) {
     return <Spinner />;
@@ -94,10 +116,10 @@ const Search = ({ username, closeSearchPage }) => {
                       type="button"
                       className="text-white flex bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 shadow-lg shadow-cyan-500/50 dark:shadow-lg dark:shadow-cyan-800/80 font-medium rounded-lg text-sm px-3 py-1.5 md:px-5 md:py-2.5 text-center me-2 mb-2"
                       style={{ alignSelf: "flex-end" }} // Align button to the right
-                      onClick={() => sendRequest(item._id)}
+                      onClick={() => sendRequest(item.username)}
                     >
                       <FaUserPlus size={20} className="mr-1" color="white" />
-                      Send Request
+                      Profile
                     </button>
                   </div>
                 ))

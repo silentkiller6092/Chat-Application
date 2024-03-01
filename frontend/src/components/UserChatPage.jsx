@@ -26,9 +26,6 @@ const UserChatPage = ({ userId, userName, userImg, currentUser }) => {
       socket.on("connect", () => {
         socket.emit("addUser", userId, currentUser);
       });
-      socket.on("getUser", (users) => {
-        console.log("Active users users:", users);
-      });
 
       socket.on("getMessage", (message) => {
         setMessages((prev) => [...prev, message]);

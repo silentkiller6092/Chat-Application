@@ -4,7 +4,6 @@ import { useMediaQuery } from "react-responsive";
 import ChatPagesmallDevice from "./ChatPagesmallDevice";
 import Header from "./Header";
 import Spinner from "./Spinner";
-
 const ChatPage = ({ showHeader }) => {
   const [loader, setLoader] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);

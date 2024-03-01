@@ -5,13 +5,13 @@ import App from "./App";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import ChatPage from "./components/ChatPage";
 import Header from "./components/Header";
+import Profile from "./components/Profile";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <React.Fragment>
-        <Header />
         <App />
       </React.Fragment>
     ),
@@ -21,6 +21,15 @@ const router = createBrowserRouter([
     element: (
       <React.Fragment>
         <ChatPage showHeader={true} />
+      </React.Fragment>
+    ),
+  },
+  {
+    path: "/profile/:username",
+    element: (
+      <React.Fragment>
+        <Header />
+        <Profile />
       </React.Fragment>
     ),
   },

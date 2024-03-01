@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-
-import Cookies from "js-cookie";
 import Container from "react-bootstrap/Container";
 
 import Nav from "react-bootstrap/Nav";
