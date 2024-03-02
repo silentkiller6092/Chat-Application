@@ -17,6 +17,7 @@ function Profile() {
   const [followingCount, setFollowingCount] = useState();
   const [error, seterror] = useState("");
   const [test, setTest] = useState("");
+  const [disbaleButton, setDisbaleButton] = useState(false);
   const searchResult = async () => {
     setLoader(true);
     try {
@@ -50,6 +51,12 @@ function Profile() {
       );
       const res = await sendRequest.json();
 
+      if (res.statusCode == 408) {
+        setDisbaleButton(true);
+      }
+      if (res.statusCode != 200) {
+        throw new Error(res.errors);
+      }
       userStatus();
     } catch (e) {
       seterror(e.message);
@@ -65,7 +72,9 @@ function Profile() {
       );
 
       const statusData = await getUserStatus.json();
-
+      if (statusData.statusCode != 200) {
+        throw new Error(statusData.errors);
+      }
       if (statusData.data.length == 0) {
         setTest(0);
       } else if (statusData && statusData.data[0].requests) {
@@ -92,6 +101,9 @@ function Profile() {
         }
       );
       const data = await followerData.json();
+      if (data.statusCode != 200) {
+        throw new Error(data.errors);
+      }
       setFollowingCount(await data.data.length);
     } catch (e) {
       seterror(e.message);
@@ -107,6 +119,9 @@ function Profile() {
         }
       );
       const data = await followerData.json();
+      if (data.statusCode != 200) {
+        throw new Error(data.errors);
+      }
       setFollowerCount(await data.data.length);
     } catch (e) {
       seterror(e.message);
@@ -153,32 +168,61 @@ function Profile() {
                   <br />
                   {result.createdAt}
                 </p>
-                <button
-                  type="button"
-                  class="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-                  onClick={sendRequest}
-                >
-                  <span className="flex items-center justify-center">
-                    {test === 0 ? (
-                      <>
-                        <AddUserIcon className="text-xl mr-2" />
-                        <button onClick={sendRequest}>Send Request</button>
-                      </>
-                    ) : test === "pending" ? (
-                      <>
-                        <FaCheckCircle className="text-xl mr-2" />
-                        Requested
-                      </>
-                    ) : test === "accepted" ? (
-                      <>
-                        <FaCheckCircle className="text-xl mr-2" />
-                        Friends
-                      </>
-                    ) : (
-                      <></>
-                    )}
-                  </span>
-                </button>
+                {disbaleButton || test === "pending" ? (
+                  <button
+                    type="button"
+                    className="text-white bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-50 select-none disabled:opacity-50 disabled:cursor-not-allowed focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+                    disabled={true}
+                  >
+                    <span className="flex items-center justify-center">
+                      {test === 0 ? (
+                        <>
+                          <AddUserIcon className="text-xl mr-2" />
+                          Send Request
+                        </>
+                      ) : test === "pending" ? (
+                        <>
+                          <FaCheckCircle className="text-xl mr-2" />
+                          Requested
+                        </>
+                      ) : test === "accepted" ? (
+                        <>
+                          <FaCheckCircle className="text-xl mr-2" />
+                          Friends
+                        </>
+                      ) : (
+                        <></>
+                      )}
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+                    onClick={sendRequest}
+                  >
+                    <span className="flex items-center justify-center">
+                      {test === 0 ? (
+                        <>
+                          <AddUserIcon className="text-xl mr-2" />
+                          Send Request
+                        </>
+                      ) : test === "pending" ? (
+                        <>
+                          <FaCheckCircle className="text-xl mr-2" />
+                          Requested
+                        </>
+                      ) : test === "accepted" ? (
+                        <>
+                          <FaCheckCircle className="text-xl mr-2" />
+                          Friends
+                        </>
+                      ) : (
+                        <></>
+                      )}
+                    </span>
+                  </button>
+                )}
               </div>
 
               <hr className="mt-6" />

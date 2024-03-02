@@ -279,6 +279,7 @@ const acceptedOwnerRequest = async (req, res) => {
       {
         $match: {
           inviterID: new mongoose.Types.ObjectId(req.user._id),
+          "requests.status": "accepted", // Match based on status directly
         },
       },
       {
@@ -286,8 +287,7 @@ const acceptedOwnerRequest = async (req, res) => {
       },
       {
         $match: {
-          "requests.inviterID": new mongoose.Types.ObjectId(req.user._id),
-          "requests.$.status": "accepted", // Corrected the status spelling
+          "requests.status": "accepted", // Match based on status again
         },
       },
     ]);

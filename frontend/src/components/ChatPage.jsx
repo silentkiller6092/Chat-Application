@@ -9,9 +9,10 @@ const ChatPage = ({ showHeader }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [results, setResults] = useState([]);
   const [cresults, csetResults] = useState([]);
+  const [error, seterror] = useState("");
   const isMobile = useMediaQuery({ maxWidth: 991 });
 
-  const handleSearch = async () => {
+  const userList = async () => {
     setLoader(true);
     try {
       const submitRes = await fetch(
@@ -28,16 +29,16 @@ const ChatPage = ({ showHeader }) => {
 
       const responseJson = await submitRes.json();
       setResults(responseJson.data);
+      console.log(responseJson);
+      if (responseJson.statusCode != 200) {
+        throw new Error(responseJson.errors);
+      }
     } catch (error) {
-      console.error(error);
+      seterror(error.message);
     } finally {
       setLoader(false);
     }
   };
-
-  useEffect(() => {
-    handleSearch();
-  }, []);
 
   const openChatPage = (user) => {
     setSelectedUser(user);
@@ -64,6 +65,7 @@ const ChatPage = ({ showHeader }) => {
 
   useEffect(() => {
     currentUserDetails();
+    userList();
   }, []);
   if (loader) {
     return <Spinner />;
@@ -76,7 +78,12 @@ const ChatPage = ({ showHeader }) => {
         <div className="flex align-middle lg:mx-3 lg:mt-3 ">
           <div className="w-full lg:w-1/4 addUserside mx-auto ">
             <div className="w-full  bg-[#131518] ">
-              <div class="w-full flex-1 flex flex-col h-screen  rounded-lg">
+              <div className="w-full flex-1 flex flex-col h-screen  rounded-lg">
+                {error ? (
+                  <p className="text-xl text-cyan-400 text-center">{error}</p>
+                ) : (
+                  <></>
+                )}
                 <div className="flex flex-col space-y-4 mb-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
                   {results &&
                     results.map((user) => (

@@ -5,14 +5,18 @@ import Register from "./Register";
 import { useForm } from "react-hook-form";
 import Spinner from "./Spinner";
 import { useNavigate } from "react-router-dom";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useDispatch } from "react-redux";
+import { login, logout } from "../app/Reducers";
 const schema = z.object({
   email: z.string().email("Email is Required"),
   password: z.string().nonempty("Password must be at least 8 characters"),
 });
 function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
@@ -67,15 +71,18 @@ function Login() {
       );
 
       if (!submitRes.ok) {
-        const responseData = await submitRes.json();
-        throw new Error(responseData.errors);
+        const userData = await submitRes.json();
+        throw new Error(userData.errors);
       }
 
-      const responseJson = await submitRes.json();
-
-      if (responseJson.statusCode === 200) {
+      const userData = await submitRes.json();
+      console.log(userData);
+      if (userData.statusCode === 200) {
         // Navigate to chat page or perform other actions
+        dispatch(login({ status: true }));
         navigate("/chatPage");
+      } else {
+        dispatch(logout());
       }
     } catch (err) {
       setError("root", {
