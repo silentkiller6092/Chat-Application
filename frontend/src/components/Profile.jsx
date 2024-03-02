@@ -13,11 +13,10 @@ function Profile() {
   const { username } = useParams();
   const [result, setResult] = useState([]);
   const [loader, setLoader] = useState(false);
-  const [requestalready, setRequestsent] = useState();
-  const [noRequest, setnoRequest] = useState(false);
   const [followerCount, setFollowerCount] = useState();
   const [followingCount, setFollowingCount] = useState();
-  const [gloabl, setGloabl] = useState(false);
+  const [error, seterror] = useState("");
+  const [test, setTest] = useState("");
   const searchResult = async () => {
     setLoader(true);
     try {
@@ -49,9 +48,11 @@ function Profile() {
           credentials: "include",
         }
       );
-      setGloabl(true);
+      const res = await sendRequest.json();
+
+      userStatus();
     } catch (e) {
-      console.log(e);
+      seterror(e.message);
     }
   };
   const userStatus = async (req, res) => {
@@ -64,21 +65,16 @@ function Profile() {
       );
 
       const statusData = await getUserStatus.json();
-      setGloabl(true);
-      if (statusData && statusData.data && statusData.data.length == 0) {
-        setnoRequest(true);
-      } else if (
-        statusData &&
-        statusData.data &&
-        statusData.data[0] &&
-        statusData.data[0].requests
-      ) {
-        setRequestsent(statusData.data[0].requests.status);
+
+      if (statusData.data.length == 0) {
+        setTest(0);
+      } else if (statusData && statusData.data[0].requests) {
+        setTest(statusData.data[0].requests.status);
       } else {
         // Handle the case where data is empty or doesn't contain the expected structure
       }
     } catch (e) {
-      console.log(e);
+      seterror(e.message);
     }
   };
 
@@ -87,7 +83,6 @@ function Profile() {
     userStatus();
   }, [username]);
 
-  // Followers
   const followingUser = async (req, res) => {
     try {
       const followerData = await fetch(
@@ -98,7 +93,9 @@ function Profile() {
       );
       const data = await followerData.json();
       setFollowingCount(await data.data.length);
-    } catch (e) {}
+    } catch (e) {
+      seterror(e.message);
+    }
   };
 
   const followers = async (req, res) => {
@@ -111,7 +108,9 @@ function Profile() {
       );
       const data = await followerData.json();
       setFollowerCount(await data.data.length);
-    } catch (e) {}
+    } catch (e) {
+      seterror(e.message);
+    }
   };
 
   useEffect(() => {
@@ -121,7 +120,7 @@ function Profile() {
   if (loader) {
     return <Spinner />;
   }
-  console.log(gloabl);
+
   return (
     <div>
       <>
@@ -159,30 +158,26 @@ function Profile() {
                   class="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
                   onClick={sendRequest}
                 >
-                  {gloabl == true ? (
-                    <span className="flex items-center justify-center">
-                      {noRequest === true ? (
-                        <>
-                          <AddUserIcon className="text-xl mr-2" />
-                          <button onClick={sendRequest}>Send Request</button>
-                        </>
-                      ) : requestalready === "pending" ? (
-                        <>
-                          <FaCheckCircle className="text-xl mr-2" />
-                          Requested
-                        </>
-                      ) : requestalready === "accepted" ? (
-                        <>
-                          <FaCheckCircle className="text-xl mr-2" />
-                          Friends
-                        </>
-                      ) : (
-                        <></>
-                      )}
-                    </span>
-                  ) : (
-                    <></>
-                  )}
+                  <span className="flex items-center justify-center">
+                    {test === 0 ? (
+                      <>
+                        <AddUserIcon className="text-xl mr-2" />
+                        <button onClick={sendRequest}>Send Request</button>
+                      </>
+                    ) : test === "pending" ? (
+                      <>
+                        <FaCheckCircle className="text-xl mr-2" />
+                        Requested
+                      </>
+                    ) : test === "accepted" ? (
+                      <>
+                        <FaCheckCircle className="text-xl mr-2" />
+                        Friends
+                      </>
+                    ) : (
+                      <></>
+                    )}
+                  </span>
                 </button>
               </div>
 
@@ -206,7 +201,11 @@ function Profile() {
                   </p>
                 </div>
               </div>
-              <p className="text-xl text-cyan-400 text-center">Error</p>
+              {error ? (
+                <p className="text-xl text-cyan-400 text-center">{error}</p>
+              ) : (
+                <></>
+              )}
             </div>
           </div>
         </div>
