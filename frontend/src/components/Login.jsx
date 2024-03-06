@@ -1,22 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Input from "./Input";
 
 import Register from "./Register";
 import { useForm } from "react-hook-form";
 import Spinner from "./Spinner";
 import { useNavigate } from "react-router-dom";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch } from "react-redux";
 import { login, logout } from "../app/Reducers";
+
 const schema = z.object({
   email: z.string().email("Email is Required"),
   password: z.string().nonempty("Password must be at least 8 characters"),
 });
+
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [loder, setLoder] = useState(false);
   const {
     register,
     handleSubmit,
@@ -25,35 +27,6 @@ function Login() {
   } = useForm({
     resolver: zodResolver(schema),
   });
-  // const onSubmits = async (data) => {
-  //   try {
-  //     const body = JSON.stringify(data);
-  //     const submitRes = await fetch(
-  //       `${process.env.REACT_APP_API_URL}users/login`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json", // Ensure Content-Type is set to application/json
-  //         },
-  //         body: body,
-  //       }
-  //     );
-
-  //     if (!submitRes.ok) {
-  //       const responseData = await submitRes.json();
-  //       throw new Error(responseData.errors);
-  //     }
-
-  //     const responseJson = await submitRes.json();
-  //     if (responseJson.statusCode == 200) {
-  //       navigate("/chatPage");
-  //     }
-  //   } catch (err) {
-  //     setError("root", {
-  //       message: err.message,
-  //     });
-  //   }
-  // };
   const onSubmits = async (data) => {
     try {
       const body = JSON.stringify(data);
@@ -76,7 +49,6 @@ function Login() {
       }
 
       const userData = await submitRes.json();
-      console.log(userData);
       if (userData.statusCode === 200) {
         // Navigate to chat page or perform other actions
         dispatch(login({ status: true }));
@@ -91,18 +63,56 @@ function Login() {
     }
   };
 
-  // Helper function to get cookie by name
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-  }
-
   const [showRegister, setShowRegister] = useState(false);
+
+  useEffect(() => {
+    const autoLogin = async () => {
+      setLoder(true);
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}users/autologin`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
+        if (response.ok) {
+          dispatch(login({ status: true }));
+          navigate("/chatPage");
+        } else {
+          dispatch(login({ status: false }));
+        }
+      } catch (error) {
+        setError("root", {
+          message: error.message,
+        });
+      } finally {
+        setLoder(false);
+      }
+    };
+
+    autoLogin();
+  }, [navigate]);
+
+  // Handle redirecting back to login page if error or 404 response from protected route
+  useEffect(() => {
+    const handleErrors = (event) => {
+      if (event.detail.status === 404 || event.detail.error) {
+        navigate("/"); // Redirect to login page if error or 404
+      }
+    };
+
+    window.addEventListener("protectedRouteError", handleErrors);
+
+    return () => {
+      window.removeEventListener("protectedRouteError", handleErrors);
+    };
+  }, [navigate]);
+
   const registerButon = () => {
     setShowRegister(true);
   };
-  if (isSubmitting) {
+  if (isSubmitting || loder) {
     return <Spinner />;
   }
   return showRegister ? (

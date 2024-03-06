@@ -7,6 +7,7 @@ const {
   logout,
   currentUser,
   getUserByUsername,
+  cookiesLogin,
 } = require("../Controller/User.controller");
 const verifyJWT = require("../middleware/Auth.middleware");
 
@@ -15,5 +16,6 @@ router.route("/login").post(loginuser);
 router.route("/logout").post(verifyJWT, logout);
 router.route("/getCurrentUser").get(verifyJWT, currentUser);
 router.route("/user/:username").get(verifyJWT, getUserByUsername);
+router.route("/autologin").post(verifyJWT, cookiesLogin);
 
 module.exports = router;

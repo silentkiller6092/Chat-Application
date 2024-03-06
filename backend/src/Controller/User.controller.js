@@ -1,17 +1,20 @@
 const userModel = require("../models/user.model");
 const APIResponse = require("../utils/APiResponse");
 const APIerror = require("../utils/ApiError");
-
+const jwt = require("jsonwebtoken");
 const { uploadonCloud } = require("../utils/Cloudinary");
 const generateAccessTokenandRefreshToken = async (userId) => {
   try {
     const user = await userModel.findById(userId);
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const accessToken = await user.generateAccessToken();
+    const refreshToken = await user.generateRefreshToken();
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
     return { accessToken: accessToken, refreshToken: refreshToken };
-  } catch (e) {
+  } catch (error) {
     throw new APIerror(500, "Something went wrong");
   }
 };
@@ -78,30 +81,95 @@ const loginuser = async (req, res) => {
   try {
     const { email, username, password } = req.body;
     if (!email && !username) throw new APIerror(400, "Fields can't be empty");
-    const userCHek = await userModel.findOne({
+    const userCheck = await userModel.findOne({
       $or: [{ email: email }, { username: username }],
     });
-    if (!userCHek) throw new APIerror(404, "User does not exist");
-    const isPasswordCorrt = await userCHek.ispasswordCorrect(password);
-    if (!isPasswordCorrt) throw new APIerror(400, "Incorrect password");
-    const loggedinuser = await userModel
-      .findById(userCHek._id)
-      .select("-password -refreshToken");
-    const { accessToken, refreshToken } =
-      await generateAccessTokenandRefreshToken(userCHek._id.toString());
+    if (!userCheck) throw new APIerror(404, "User does not exist");
+    const isPasswordCorrect = await userCheck.ispasswordCorrect(password);
+    if (!isPasswordCorrect) throw new APIerror(400, "Incorrect password");
 
-    const options = {
+    const loggedinuser = await userModel
+      .findById(userCheck._id)
+      .select("-password -refreshToken");
+
+    const { accessToken, refreshToken } =
+      await generateAccessTokenandRefreshToken(userCheck._id);
+
+    const optionsAccessToken = {
       sameSite: "None",
       httpOnly: true,
       secure: true,
     };
-    if ((process.env.NODE_ENV = "production")) options.secure = true;
-    return res
-      .cookie("accessToken", await accessToken, options)
-      .cookie("refreshToken", await refreshToken, options)
-      .json(new APIResponse(200, loggedinuser));
+    const optionsRefreshToken = {
+      sameSite: "None",
+      httpOnly: true,
+      secure: true,
+    };
+    if (process.env.NODE_ENV === "production") {
+      optionsAccessToken.secure = true;
+      optionsRefreshToken.secure = true;
+    }
+    const expirationTimeAccessToken = new Date(
+      Date.now() + 10 * 24 * 60 * 60 * 1000
+    );
+    optionsAccessToken.expires = expirationTimeAccessToken;
+    const expirationTimeRefreshToken = new Date(
+      Date.now() + 20 * 24 * 60 * 60 * 1000
+    );
+    optionsRefreshToken.expires = expirationTimeRefreshToken;
+
+    res.cookie("accessToken", accessToken, optionsAccessToken);
+    res.cookie("refreshToken", refreshToken, optionsRefreshToken);
+
+    return res.json(new APIResponse(200, loggedinuser));
   } catch (error) {
-    console.log(error);
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
+  }
+};
+
+const cookiesLogin = async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new APIerror(401, "unauthorized request");
+  }
+
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOEKN_SECRET
+    );
+    const user = await userModel.findById(decodedToken?._id);
+    if (!user) {
+      throw new APIerror(401, "Invalid refresh token");
+    }
+
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new APIerror(401, "Refresh token is expired or used");
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    const { accessToken, refreshToken } =
+      await generateAccessTokenandRefreshToken(user._id);
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new APIResponse(
+          200,
+          { accessToken, refreshToken: refreshToken },
+          "Access token refreshed"
+        )
+      );
+  } catch (error) {
     return res
       .status(error.statusCode || 500)
       .json(new APIerror(error.statusCode || 500, null, error.message));
@@ -170,4 +238,5 @@ module.exports = {
   logout,
   currentUser,
   getUserByUsername,
+  cookiesLogin,
 };

@@ -3,6 +3,7 @@ import Container from "react-bootstrap/Container";
 
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
+import { useNavigate } from "react-router-dom";
 import {
   FaBars,
   FaTimes,
@@ -13,12 +14,14 @@ import {
   FaSignOutAlt as LogoutIcon,
 } from "react-icons/fa";
 import Search from "./Search";
-
+import Spinner from "./Spinner";
 function Header() {
   const [openSearchPage, setOpenSearchPage] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [searchContent, setSearchContent] = useState("");
   const [results, setResults] = useState();
+  const [loader, setLoader] = useState(false);
+  const navigate = useNavigate();
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
   };
@@ -33,7 +36,7 @@ function Header() {
     setSearchContent("");
   };
 
-  // const [results, setResults] = useState(null); // Assuming results is initially null
+  const logoutPage = async () => {};
 
   const currentUserDetails = async () => {
     try {
@@ -91,12 +94,15 @@ function Header() {
                 style={{ maxHeight: "130px" }}
                 navbarScroll
               >
-                <Nav.Link href="#action1" className="text-white mx-2">
+                <Nav
+                  className="text-white mx-2 cursor-pointer"
+                  onClick={() => navigate("/chatPage")}
+                >
                   <span className="iconclass">
                     <HomeIcon className="mr-1" />
                     Home
                   </span>
-                </Nav.Link>
+                </Nav>
                 <Nav.Link href="#action1" className="text-white mx-2">
                   <span className="iconclass">
                     <FollowerIcon className="mr-1" />
@@ -115,12 +121,12 @@ function Header() {
                     Add User
                   </span>
                 </Nav.Link>
-                <Nav.Link href="#action2" className="text-white mx-2">
+                <Nav className="text-white mx-2" onClick={logoutPage}>
                   <span className="iconclass">
                     <LogoutIcon className="mr-1" />
                     Logout
                   </span>
-                </Nav.Link>
+                </Nav>
               </Nav>
 
               <form className="w-full lg:w-1/3 " onSubmit={searchPage}>

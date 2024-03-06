@@ -1,6 +1,10 @@
 const app = require("./app.js");
 const server = require("http").createServer(app);
 const connectDB = require("./db/index.js");
+const dotnev = require("dotenv");
+dotnev.config({
+  path: "./env",
+});
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",

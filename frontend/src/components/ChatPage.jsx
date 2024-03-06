@@ -29,7 +29,6 @@ const ChatPage = ({ showHeader }) => {
 
       const responseJson = await submitRes.json();
       setResults(responseJson.data);
-      console.log(responseJson);
       if (responseJson.statusCode != 200) {
         throw new Error(responseJson.errors);
       }
