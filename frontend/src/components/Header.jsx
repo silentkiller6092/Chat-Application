@@ -1,29 +1,33 @@
 import React, { useEffect, useState } from "react";
 import Container from "react-bootstrap/Container";
-
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "../app/Reducers";
+import Spinner from "./Spinner";
 import {
   FaBars,
   FaTimes,
+  FaBell,
   FaHome as HomeIcon,
   FaUserFriends as FollowerIcon,
   FaUserCheck as FollowingIcon,
-  FaUserPlus as AddUserIcon,
   FaSignOutAlt as LogoutIcon,
 } from "react-icons/fa";
 import Search from "./Search";
-
 import Follower from "./Following";
 import Followers from "./Followers";
+
 function Header() {
   const [openSearchPage, setOpenSearchPage] = useState(false);
   const [openfollowing, setOpenfollowing] = useState(false);
   const [openfollower, setOpenfollower] = useState(false);
+  const dispatch = useDispatch();
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [searchContent, setSearchContent] = useState("");
   const [results, setResults] = useState();
+  const [loder, setloder] = useState(false);
   const navigate = useNavigate();
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -39,7 +43,27 @@ function Header() {
     setSearchContent("");
   };
 
-  const logoutPage = async () => {};
+  const logoutPage = async () => {
+    setloder(true);
+    try {
+      const logoutUser = await fetch(
+        `${process.env.REACT_APP_API_URL}users/logout`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+      const res = await logoutUser.json();
+      console.log(res);
+      if (res.statusCode === 200) {
+        dispatch(logout({ status: false }));
+        navigate("/");
+      }
+    } catch (e) {
+    } finally {
+      setloder(false);
+    }
+  };
 
   const currentUserDetails = async () => {
     try {
@@ -78,6 +102,9 @@ function Header() {
   const closeFollower = () => {
     setOpenfollower(false);
   };
+  if (loder) {
+    return <Spinner />;
+  }
   return (
     <>
       {results && (
@@ -136,13 +163,16 @@ function Header() {
                     Follwoing
                   </span>
                 </Nav>
-                <Nav.Link href="#action1" className="text-white mx-2">
+                <Nav className="text-white mx-2 cursor-pointer">
                   <span className="iconclass">
-                    <AddUserIcon className="mr-1" />
-                    Add User
+                    <FaBell className="mr-1" />
+                    Notification
                   </span>
-                </Nav.Link>
-                <Nav className="text-white mx-2" onClick={logoutPage}>
+                </Nav>
+                <Nav
+                  className="text-white mx-2 cursor-pointer"
+                  onClick={logoutPage}
+                >
                   <span className="iconclass">
                     <LogoutIcon className="mr-1" />
                     Logout

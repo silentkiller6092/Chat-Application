@@ -26,7 +26,7 @@ const ChatPage = ({ showHeader }) => {
         throw new Error(responseJson.errors);
       }
       setResults(responseJson.data);
-      return responseJson; // Return response JSON for comparison
+      return responseJson;
     } catch (error) {
       setLoader(false);
       return { error };
@@ -47,27 +47,25 @@ const ChatPage = ({ showHeader }) => {
         throw new Error(responseJson.errors);
       }
       setResults(responseJson.data);
-      return responseJson; // Return response JSON for comparison
+      return responseJson;
     } catch (error) {
       setLoader(false);
       return { error };
     }
   };
 
-  // Call both functions and handle errors
   const handleDataFetching = async () => {
     const userListResponse = await userList();
     const followingUserListResponse = await followinguserList();
 
     if (userListResponse.error && followingUserListResponse.error) {
-      // Check if both API calls returned errors
       if (
         userListResponse.error.message ===
         followingUserListResponse.error.message
       ) {
-        seterror(userListResponse.error.message); // Set error if both errors are same
+        seterror(userListResponse.error.message);
       } else {
-        seterror("Error occurred in fetching data"); // Set generic error message if errors are different
+        seterror("Error occurred in fetching data");
       }
     }
     setLoader(false);
@@ -100,6 +98,7 @@ const ChatPage = ({ showHeader }) => {
     currentUserDetails();
     userList();
     followinguserList();
+    handleDataFetching();
   }, []);
   if (loader) {
     return <Spinner />;
