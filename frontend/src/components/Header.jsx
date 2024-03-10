@@ -14,13 +14,16 @@ import {
   FaSignOutAlt as LogoutIcon,
 } from "react-icons/fa";
 import Search from "./Search";
-import Spinner from "./Spinner";
+
+import Follower from "./Following";
+import Followers from "./Followers";
 function Header() {
   const [openSearchPage, setOpenSearchPage] = useState(false);
+  const [openfollowing, setOpenfollowing] = useState(false);
+  const [openfollower, setOpenfollower] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [searchContent, setSearchContent] = useState("");
   const [results, setResults] = useState();
-  const [loader, setLoader] = useState(false);
   const navigate = useNavigate();
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -62,7 +65,19 @@ function Header() {
   useEffect(() => {
     currentUserDetails();
   }, []);
+  const userFollowing = () => {
+    setOpenfollowing(true);
+  };
+  const closeFollowing = () => {
+    setOpenfollowing(false);
+  };
 
+  const userFollower = () => {
+    setOpenfollower(true);
+  };
+  const closeFollower = () => {
+    setOpenfollower(false);
+  };
   return (
     <>
       {results && (
@@ -103,18 +118,24 @@ function Header() {
                     Home
                   </span>
                 </Nav>
-                <Nav.Link href="#action1" className="text-white mx-2">
+                <Nav
+                  className="text-white mx-2 cursor-pointer"
+                  onClick={userFollower}
+                >
                   <span className="iconclass">
                     <FollowerIcon className="mr-1" />
                     Follower
                   </span>
-                </Nav.Link>
-                <Nav.Link href="#action1" className="text-white mx-2">
+                </Nav>
+                <Nav
+                  className="text-white mx-2 cursor-pointer"
+                  onClick={userFollowing}
+                >
                   <span className="iconclass">
                     <FollowingIcon className="mr-1" />
                     Follwoing
                   </span>
-                </Nav.Link>
+                </Nav>
                 <Nav.Link href="#action1" className="text-white mx-2">
                   <span className="iconclass">
                     <AddUserIcon className="mr-1" />
@@ -180,6 +201,8 @@ function Header() {
       {openSearchPage && (
         <Search closeSearchPage={closeSearchPage} username={searchContent} />
       )}
+      {openfollowing ? <Follower closeSearchPage={closeFollowing} /> : null}
+      {openfollower ? <Followers closeSearchPage={closeFollower} /> : null}
     </>
   );
 }

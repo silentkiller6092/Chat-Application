@@ -25,9 +25,9 @@ const router = createBrowserRouter([
   {
     path: "/chatPage",
     element: (
-      <Protected>
-        <ChatPage showHeader={true} />
-      </Protected>
+      // <Protected>
+      <ChatPage showHeader={true} />
+      // </Protected>
     ),
   },
   {

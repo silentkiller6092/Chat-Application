@@ -7,10 +7,11 @@ import { useSelector } from "react-redux";
 function AddUser() {
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.auth.status);
-
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/chatPage");
+    } else {
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 

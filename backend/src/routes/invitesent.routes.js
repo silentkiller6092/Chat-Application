@@ -11,6 +11,8 @@ const {
   getRequestDetail,
   following,
   folllowers,
+  currentUserFollwoing,
+  currentUserFollwer,
 } = require("../Controller/inviteSent.controller");
 const verifyJWT = require("../middleware/Auth.middleware");
 const { route } = require("./user.routes");
@@ -25,4 +27,5 @@ router.route("/pendingRequest").get(verifyJWT, OwnerRequestPending);
 router.route("/requestStatus/:username").get(verifyJWT, getRequestDetail);
 router.route("/following/:username").get(verifyJWT, following);
 router.route("/followers/:username").get(verifyJWT, folllowers);
+router.route("/userFollowing").get(verifyJWT, currentUserFollwer);
 module.exports = router;

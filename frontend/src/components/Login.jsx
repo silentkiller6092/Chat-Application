@@ -50,11 +50,11 @@ function Login() {
 
       const userData = await submitRes.json();
       if (userData.statusCode === 200) {
-        // Navigate to chat page or perform other actions
         dispatch(login({ status: true }));
         navigate("/chatPage");
       } else {
-        dispatch(logout());
+        dispatch(logout({ status: false }));
+        navigate("/");
       }
     } catch (err) {
       setError("root", {
@@ -64,35 +64,37 @@ function Login() {
   };
 
   const [showRegister, setShowRegister] = useState(false);
-
-  useEffect(() => {
-    const autoLogin = async () => {
-      setLoder(true);
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_URL}users/autologin`,
-          {
-            method: "POST",
-            credentials: "include",
-          }
-        );
-        if (response.ok) {
-          dispatch(login({ status: true }));
-          navigate("/chatPage");
-        } else {
-          dispatch(login({ status: false }));
+  const autoLogin = async () => {
+    setLoder(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}users/autologin`,
+        {
+          method: "POST",
+          credentials: "include",
         }
-      } catch (error) {
-        setError("root", {
-          message: error.message,
-        });
-      } finally {
-        setLoder(false);
-      }
-    };
+      );
+      const res = await response.json();
 
+      if (res.statusCode === 200) {
+        dispatch(login({ status: true }));
+        navigate("/chatPage");
+      } else {
+        dispatch(logout({ status: false }));
+
+        navigate("/");
+      }
+    } catch (error) {
+      setError("root", {
+        message: error.message,
+      });
+    } finally {
+      setLoder(false);
+    }
+  };
+  useEffect(() => {
     autoLogin();
-  }, [navigate]);
+  }, [navigate, dispatch]);
 
   // Handle redirecting back to login page if error or 404 response from protected route
   useEffect(() => {

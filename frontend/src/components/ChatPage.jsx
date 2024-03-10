@@ -21,22 +21,56 @@ const ChatPage = ({ showHeader }) => {
           credentials: "include",
         }
       );
-      // Process the searchResult
-      if (!submitRes.ok) {
-        const responseData = await submitRes.json();
-        throw new Error(responseData.errors);
-      }
-
       const responseJson = await submitRes.json();
-      setResults(responseJson.data);
-      if (responseJson.statusCode != 200) {
+      if (!submitRes.ok) {
         throw new Error(responseJson.errors);
       }
+      setResults(responseJson.data);
+      return responseJson; // Return response JSON for comparison
     } catch (error) {
-      seterror(error.message);
-    } finally {
       setLoader(false);
+      return { error };
     }
+  };
+
+  const followinguserList = async () => {
+    setLoader(true);
+    try {
+      const submitRes = await fetch(
+        `${process.env.REACT_APP_API_URL}sendRequest/userFollowing`,
+        {
+          credentials: "include",
+        }
+      );
+      const responseJson = await submitRes.json();
+      if (!submitRes.ok) {
+        throw new Error(responseJson.errors);
+      }
+      setResults(responseJson.data);
+      return responseJson; // Return response JSON for comparison
+    } catch (error) {
+      setLoader(false);
+      return { error };
+    }
+  };
+
+  // Call both functions and handle errors
+  const handleDataFetching = async () => {
+    const userListResponse = await userList();
+    const followingUserListResponse = await followinguserList();
+
+    if (userListResponse.error && followingUserListResponse.error) {
+      // Check if both API calls returned errors
+      if (
+        userListResponse.error.message ===
+        followingUserListResponse.error.message
+      ) {
+        seterror(userListResponse.error.message); // Set error if both errors are same
+      } else {
+        seterror("Error occurred in fetching data"); // Set generic error message if errors are different
+      }
+    }
+    setLoader(false);
   };
 
   const openChatPage = (user) => {
@@ -65,6 +99,7 @@ const ChatPage = ({ showHeader }) => {
   useEffect(() => {
     currentUserDetails();
     userList();
+    followinguserList();
   }, []);
   if (loader) {
     return <Spinner />;

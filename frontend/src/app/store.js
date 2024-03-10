@@ -13,7 +13,7 @@ import {
 
 const persistConfig = {
   key: "root",
-  storage: storageSession, // Use sessionStorage
+  storage: storageSession,
 };
 
 const persistedReducer = persistReducer(persistConfig, Reducers);

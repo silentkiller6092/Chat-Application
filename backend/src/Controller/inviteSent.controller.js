@@ -278,8 +278,8 @@ const acceptedOwnerRequest = async (req, res) => {
     const findid = await FriendRequestSent.aggregate([
       {
         $match: {
-          inviterID: new mongoose.Types.ObjectId(req.user._id),
-          "requests.status": "accepted", // Match based on status directly
+          "requests.requestedID": new mongoose.Types.ObjectId(req.user._id), // Match where the requestedID matches the current user's ID
+          "requests.status": "accepted", // Match where the request status is "accepted"
         },
       },
       {
@@ -287,13 +287,14 @@ const acceptedOwnerRequest = async (req, res) => {
       },
       {
         $match: {
-          "requests.status": "accepted", // Match based on status again
+          "requests.requestedID": new mongoose.Types.ObjectId(req.user._id), // Match where the requestedID matches the current user's ID
+          "requests.status": "accepted", // Match where the request status is "accepted"
         },
       },
     ]);
 
     if (!findid || findid.length === 0) {
-      throw new APIerror(404, "No Request yet");
+      throw new APIerror(400, "No Request yet");
     }
 
     // Array to store user details corresponding to each requestedID
@@ -301,8 +302,7 @@ const acceptedOwnerRequest = async (req, res) => {
 
     // Iterate over each item in findid array
     for (const item of findid) {
-      const requestedID = item.requests.requestedID;
-      // Query the database to find user details based on requestedID
+      const requestedID = item.requests.inviterID;
       const user = await userModel
         .findById(requestedID)
         .select("-password -avatarPublicId -createdAt -updatedAt -email");
@@ -346,8 +346,45 @@ const OwnerRequestPending = async (req, res) => {
       throw new APIerror(400, "You haven't made any requests");
     }
     const users = [];
-
-    // Iterate over each item in findid array
+    for (const item of findid) {
+      const requestedID = item.requests.requestedID;
+      // Query the database to find user details based on requestedID
+      const user = await userModel
+        .findById(requestedID)
+        .select("-password -avatarPublicId -updatedAt");
+      if (user) {
+        users.push(user);
+      }
+    }
+    return res.status(200).json(new APIResponse(200, users, "Success"));
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(new APIerror(error.statusCode || 500, null, error.message));
+  }
+};
+const currentUserFollwer = async (req, res) => {
+  try {
+    const findid = await FriendRequestSent.aggregate([
+      {
+        $match: {
+          inviterID: new mongoose.Types.ObjectId(req.user._id),
+          "requests.status": "accepted", // This matches documents where any request has status "accepted"
+        },
+      },
+      {
+        $unwind: "$requests",
+      },
+      {
+        $match: {
+          "requests.status": "accepted", // This matches individual requests with status "accepted"
+        },
+      },
+    ]);
+    if (!findid || findid.length === 0) {
+      throw new APIerror(400, "No Request Received");
+    }
+    const users = [];
     for (const item of findid) {
       const requestedID = item.requests.requestedID;
       // Query the database to find user details based on requestedID
@@ -391,6 +428,7 @@ const getRequestDetail = async (req, res) => {
         },
       },
     ]);
+
     if (!findid) {
       throw new APIerror(404, "Already accepted");
     }
@@ -413,4 +451,5 @@ module.exports = {
   getRequestDetail,
   following,
   folllowers,
+  currentUserFollwer,
 };
